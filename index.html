@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">
+    <script defer src="DFD.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        p {
+            color: rgb(233, 16, 16);
+            font-size: 18px;
+        }
+
+
+        @media screen and (max-width:1000px) {
+            .mapboxgl-popup {
+                max-width: 200px;
+                background-color: rgb(221, 0, 0);
+
+                font: 2px/2px 'Gowun Batang', serif;
+
+            }
+        }
+
+
+        .mapboxgl-popup {
+            max-width: 900px;
+            background-color: rgb(25, 216, 67);
+
+            font: 12px/22px 'Gowun Batang', serif;
+            border-radius: 55px;
+        }
+
+
+        .mapboxgl-ctrl-geocoder--input {
+            height: 36px;
+            padding: 6px 35px;
+            margin-top: 212px;
+        }
+    </style>
+    <title>DoSaR Security allotment</title>
+</head>
+
+<body>
+
+
+    <div id='map'>
+
+        </div>
+    </div>
+
+
+
+    <script
+        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet"
+        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css"
+        type="text/css">
+
+    <!-- Promise polyfill script is required -->
+    <!-- to use Mapbox GL Geocoder in IE 11. -->
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+
+
+
+
+
+</body>
+
+
+<script src='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js'></script>
+<script>
+
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaGFycnkxMjM0OTgiLCJhIjoiY2s4OXh1c3BqMGFsZzNvbXA3YmYyaGFhYSJ9.wmVMiMxlSqpzJPsj-UXr3Q';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        zoom: 16.19,
+        center: [73.878, 15.391],
+        pitch: 20, // starting pitch in degrees
+        bearing: 90,
+        
+    });
+
+    function setupMap(center) {
+        const nav = new mapboxgl.NavigationControl()
+        map.addControl(nav, "top-left")
+
+    }
+
+    function rotateCamera(timestamp) {
+          // rotate at approximately ~10 degrees per second
+          map.rotateTo((timestamp / 100) % 360, {duration:1000});
+          // request the next frame of the animation
+          requestAnimationFrame(rotateCamera);
+      }
+
+      map.on('load', function () {
+          // start the animation
+          rotateCamera(0);
+      });
+
+      // map navigation controls
+    //   map.addControl(new mapboxgl.NavigationControl());
+
+
+
+    map.addControl(
+        new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl
+
+
+        })
+    );
+
+    var popup = new mapboxgl.Popup({ closeOnClick: false, })
+
+        .setLngLat([-9, 37.8])
+        .setHTML('<h1><strong>COVID Live Update:</strong> 194,222,497 <strong>Cases and </strong>4,163,649 <strong>Deaths<strong></h1>')
+        // color = black
+        // .setColour([black])
+        .setMaxWidth("900px")
+        // .setMaxHeight("200px")
+        // .setText('Hello, world!  idjio \n jkklk ')
+        // .trackPointer()
+        .addTo(map);
+
+
+    map.addControl(new mapboxgl.FullscreenControl({ container: document.querySelector('body') }));
+
+
+
+
+
+    map.on('load', function () {
+        // Add a new vector tile source with ID 'mapillary'.
+        map.addSource('mapillary', {
+            'type': 'vector',
+            'tiles': [
+                'https://tiles.mapillary.com/maps/vtp/mly1_public/2/{z}/{x}/{y}'
+            ],
+            'minzoom': 6,
+            'maxzoom': 14
+        });
+
+        
+        map.addLayer(
+            {
+                'id': 'mapillary', // Layer ID
+                'type': 'line',
+                'source': 'mapillary', // ID of the tile source created above
+                // Source has several layers. We visualize the one with name 'sequence'.
+                'source-layer': 'sequence',
+                'layout': {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                },
+                'paint': {
+                    'line-opacity': 0.6,
+                    'line-color': 'rgb(53, 175, 109)',
+                    'line-width': 2
+                }
+            },
+            'road-label' // Arrange our new layer beneath this layer
+        );
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+
+
+
+    map.on('load', function () {
+        map.addSource('places', {
+            'type': 'geojson',
+            'data': {
+                'type': 'FeatureCollection',
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Maharashtra</h6></strong><p>CONFIRMED CASES: 62.8L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 60.6L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 1.32L</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [78398, 15.391097]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Kerala</h6></strong><p>CONFIRMED CASES: 33.1L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 31.4L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 16,326</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [76.2711, 10.8505]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Karnataka</h6></strong><p>CONFIRMED CASES: 29L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 28.4L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 36,437</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [75.7139, 15.3173]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Tamil Nadu</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [78.6569, 11.1271]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Andhra Pradesh</h6></strong><p>CONFIRMED CASES: 19.6L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 19.2L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 13,292</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [79.74, 15.9129]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Uttar Pradesh</h6></strong><p>CONFIRMED CASES: 17.1L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 16.8L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 22,754</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [80.9462, 26.8467]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp West Bengal</h6></strong><p>CONFIRMED CASES: 15.2L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 15L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 18,095</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [87.855, 22.9868]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Delhi</h6></strong><p>CONFIRMED CASES: 14.4L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 14.1L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 25,046</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [77.1025, 28.7041]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Chhattisgarh </h6></strong><p>CONFIRMED CASES: 10L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 9.86L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 13,519</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [81.8661, 21.2787]
+                        }
+                    },
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Odisha </h6></strong><p>CONFIRMED CASES: 9.71L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 9.49L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 5,634</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [85.0985, 20.9517]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Rajasthan </h6></strong><p>CONFIRMED CASES: 9.54L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 9.44L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 8,953</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [74.2179, 27.0238]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Gujarat </h6></strong><p>CONFIRMED CASES: 8.25L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 8.14L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 10,076</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [71.1924, 22.2587]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Madhya Pradesh </h6></strong><p>CONFIRMED CASES: 7.92L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered:7.81L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 10,512</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [78.6569, 22.9734]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Haryana </h6></strong><p>CONFIRMED CASES: 7.7L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 7.59L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 9,624</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [76.0856, 29.0588]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Bihar </h6></strong><p>CONFIRMED CASES: 7.25L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 7.14L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 9,639</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [85.3131, 25.0961]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Telangana </h6></strong><p>CONFIRMED CASES: 6.42L </p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 6.29L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 3,791</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [79.0193, 18.1124]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Punjab</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [75.3412, 31.1471]
+                        }
+                    },
+
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Uttarakhand</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [79.0193, 30.0668]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Jammu and Kashmir</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [76.5762, 33.7782]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Himachal Pradesh</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [77.1734, 31.1048]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Goa</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [74.124, 15.2993]
+                        }
+                    },
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Manipur</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [93.9063, 24.6637]
+                        }
+                    },
+
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Chandigarh</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [76.7794, 30.7333]
+                        }
+                    },
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Mizoram</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [92.9376, 23.1645]
+                        }
+                    },
+
+
+
+
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'description':
+                                '<strong> <h2> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp Andaman and Nicobar Islands</h6></strong><p>CONFIRMED CASES: 25.5L</p> <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Recovered: 25L</p><p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Deaths: 33,966</p>'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [92.6586, 11.7401]
+                        }
+                    },
+                ]
+            }
+        });
+        // Add a layer showing the places.
+        map.addLayer({
+            'id': 'places',
+            'type': 'circle',
+            'source': 'places',
+            'paint': {
+                'circle-color': '#4264fb',
+                'circle-radius': 6,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff'
+            }
+        });
+
+        // Create a popup, but don't add it to the map yet.
+        // var popup = new mapboxgl.Popup({
+        //     closeButton: false,
+        //     closeOnClick: false
+        // });
+
+        map.on('mouseenter', 'places', function (e) {
+            // Change the cursor style as a UI indicator.
+            map.getCanvas().style.cursor = 'pointer';
+
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = e.features[0].properties.description;
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat(coordinates).setHTML(description).addTo(map);
+        });
+
+        map.on('mouseleave', 'places', function () {
+            map.getCanvas().style.cursor = '';
+            popup.remove();
+        });
+
+
+
+
+
+    });
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+</html>
